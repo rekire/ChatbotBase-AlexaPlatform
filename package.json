@@ -1,0 +1,27 @@
+{
+  "name": "chatbotbase-alexaplatform",
+  "version": "0.1.0",
+  "description": "The platform implementation for Alexa for ChatbotBase",
+  "main": "Alexa.js",
+  "types": "Alexa.d.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rekire/ChatbotBase-AlexaPlatform.git"
+  },
+  "keywords": [
+    "chatbotbase",
+    "alexa"
+  ],
+  "author": "René Kilczan <npm@reki.re>",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/rekire/ChatbotBase-AlexaPlatform/issues"
+  },
+  "homepage": "https://github.com/rekire/ChatbotBase-AlexaPlatform#readme",
+  "dependencies": {
+    "chatbotbase": "^0.1.0"
+  }
+}
