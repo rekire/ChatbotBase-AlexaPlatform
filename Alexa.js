@@ -38,11 +38,11 @@ class Alexa extends chatbotbase_1.VoicePlatform {
                 intent = body.request.intent.name;
             }
         }
-        return new chatbotbase_1.Input(body.session.user.userId, body.session.sessionId, body.request.locale, platform, new Date(body.request.timestamp), intent, chatbotbase_1.InputMethod.voice, intent, data);
+        return new chatbotbase_1.Input(body.request.requestId, body.session.user.userId, body.session.sessionId, body.request.locale, platform, new Date(body.request.timestamp), intent, chatbotbase_1.InputMethod.voice, intent, data);
     }
     render(reply) {
         let plainReply, formattedReply;
-        reply.messages.forEach(msg => {
+        reply.replies.forEach(msg => {
             if (msg.platform === '*') {
                 if (msg.type === 'plain') {
                     plainReply = msg.render();
@@ -105,3 +105,4 @@ class Alexa extends chatbotbase_1.VoicePlatform {
     }
 }
 exports.Alexa = Alexa;
+//# sourceMappingURL=Alexa.js.map

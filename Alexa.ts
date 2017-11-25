@@ -1,4 +1,4 @@
-import {Input, InputMethod, Message, VoicePlatform, Context, Output} from 'chatbotbase';
+import {Input, InputMethod, Reply, VoicePlatform, Context, Output} from 'chatbotbase';
 
 export class Alexa extends VoicePlatform {
     platformId(): string {
@@ -35,6 +35,7 @@ export class Alexa extends VoicePlatform {
             }
         }
         return new Input(
+            body.request.requestId,
             body.session.user.userId,
             body.session.sessionId,
             body.request.locale,
@@ -48,7 +49,7 @@ export class Alexa extends VoicePlatform {
 
     render(reply: Output): any {
         let plainReply, formattedReply;
-        reply.messages.forEach(msg => {
+        reply.replies.forEach(msg => {
             if(msg.platform === '*') {
                 if(msg.type === 'plain') {
                     plainReply = msg.render();
@@ -98,8 +99,8 @@ export class Alexa extends VoicePlatform {
         return json.hasOwnProperty('session')// request, context
     }
 
-    static basicCard(message: string): Message {
-        return <Message>{
+    static basicCard(message: string): Reply {
+        return <Reply>{
             platform: 'Alexa',
             render: () => {
                 return {
