@@ -44,7 +44,8 @@ export class Alexa extends VoicePlatform {
             intent,
             InputMethod.voice,
             intent,
-            data);
+            data,
+            body.session.user.accessToken);
     }
 
     render(reply: Output): any {
