@@ -46,6 +46,17 @@ class Alexa extends chatbotbase_1.VoicePlatform {
         }
         return new chatbotbase_1.Input(body.request.requestId, body.session.user.userId, body.session.sessionId, body.request.locale, platform, new Date(body.request.timestamp), intent, chatbotbase_1.InputMethod.voice, intent, data, body.session.user.accessToken);
     }
+    verify(request, response) {
+        const verifier = require('alexa-verifier');
+        return new Promise(function (resolve, reject) {
+            verifier(request.header("SignatureCertChainUrl"), request.header("Signature"), request.rawRequest(), function (er) {
+                if (er)
+                    reject(er);
+                else
+                    resolve(true);
+            });
+        });
+    }
     render(reply) {
         let plainReply, formattedReply;
         const directives = [];
@@ -71,6 +82,13 @@ class Alexa extends chatbotbase_1.VoicePlatform {
                 }
             }
         });
+        const reprompt = reply.retentionMessage && reply.expectAnswer ? {
+            outputSpeech: {
+                type: "PlainText",
+                text: reply.retentionMessage,
+                ssml: `<speak>${reply.retentionMessage}</speak>`
+            }
+        } : undefined;
         formattedReply = formattedReply || plainReply;
         return {
             version: '1.0',
@@ -82,13 +100,7 @@ class Alexa extends chatbotbase_1.VoicePlatform {
                     ssml: `<speak>${formattedReply}</speak>`
                 },
                 card: card,
-                reprompt: {
-                    outputSpeech: {
-                        type: "PlainText",
-                        text: reply.retentionMessage,
-                        ssml: `<speak>${reply.retentionMessage}</speak>`
-                    }
-                },
+                reprompt: reprompt,
                 directives: directives,
                 shouldEndSession: !reply.expectAnswer
             }
@@ -125,20 +137,21 @@ class Alexa extends chatbotbase_1.VoicePlatform {
         };
     }
     /**
-     * Displays a simple screen optional with an image.
+     * Displays a simple screen with an image.
      * @param {string} title Title of the screen.
      * @param {string} token Used to track selectable elements in the skill service code. The value can be any user-defined string.
      * @param {EchoShowImage} background Background image of the screen.
      * @param {boolean} backVisible Set to true to show the back button.
-     * @param {EchoShowTextContent} text The text which should be displayed.
-     * @param {EchoShowImage | null} image The optional image which should be shown.
+     * @param {EchoShowTextContent | string} text The text which should be displayed.
+     * @param {EchoShowImage} image The optional image which should be shown.
      * @param {ImageAlignment} alignment The optional alignment of the image, by default right.
      * @returns {Reply} a screen with an optional image.
      * @see https://developer.amazon.com/de/docs/custom-skills/display-interface-reference.html#bodytemplate1-for-simple-text-and-image-views
      * @see https://developer.amazon.com/de/docs/custom-skills/display-interface-reference.html#bodytemplate2-for-image-views-and-limited-centered-text
      * @see https://developer.amazon.com/de/docs/custom-skills/display-interface-reference.html#bodytemplate3-for-image-views-and-limited-left-aligned-text
      */
-    static displaySimpleScreen(title, token, background, backVisible, text, image = null, alignment = ImageAlignment.Right) {
+    static displayTextAndPicture(title, token, background, backVisible, text, image = null, alignment = ImageAlignment.Right) {
+        const textContent = typeof text === "string" ? new EchoShowTextContent(text) : text;
         return {
             platform: 'Alexa',
             type: 'directory',
@@ -150,10 +163,68 @@ class Alexa extends chatbotbase_1.VoicePlatform {
                     backgroundImage: background,
                     title: title,
                     image: image,
-                    textContent: text
+                    textContent: textContent
                 };
             },
-            debug: () => title + ": " + text.primaryText.text
+            debug: () => title + ": " + textContent.primaryText.text
+        };
+    }
+    /**
+     * Displays a screen with a text on it.
+     * @param {string} title Title of the screen.
+     * @param {string} token Used to track selectable elements in the skill service code. The value can be any user-defined string.
+     * @param {EchoShowImage} background Background image of the screen.
+     * @param {boolean} backVisible Set to true to show the back button.
+     * @param {EchoShowTextContent | string} text The text which should be displayed.
+     * @param {TextAlignment} alignment The optional vertical alignment of the text, by default top.
+     * @returns {Reply} a screen with a text.
+     * @see https://developer.amazon.com/de/docs/custom-skills/display-interface-reference.html#bodytemplate1-for-simple-text-and-image-views
+     * @see https://developer.amazon.com/de/docs/custom-skills/display-interface-reference.html#bodytemplate2-for-image-views-and-limited-centered-text
+     * @see https://developer.amazon.com/de/docs/custom-skills/display-interface-reference.html#bodytemplate3-for-image-views-and-limited-left-aligned-text
+     */
+    static displayText(title, token, background, backVisible, text, alignment = TextAlignment.Top) {
+        const textContent = typeof text === "string" ? new EchoShowTextContent(text) : text;
+        return {
+            platform: 'Alexa',
+            type: 'directory',
+            render: () => {
+                return {
+                    type: "BodyTemplate" + (alignment === TextAlignment.Bottom ? 6 : 1),
+                    token: token,
+                    backButton: (backVisible ? "VISIBLE" : "HIDDEN"),
+                    backgroundImage: background,
+                    title: title,
+                    textContent: textContent
+                };
+            },
+            debug: () => title + ": " + textContent.primaryText.text
+        };
+    }
+    /**
+     * Displays a simple screen with an image.
+     * @param {string} title Title of the screen.
+     * @param {string} token Used to track selectable elements in the skill service code. The value can be any user-defined string.
+     * @param {EchoShowImage} background Background image of the screen.
+     * @param {boolean} backVisible Set to true to show the back button.
+     * @param {EchoShowImage} foreground The optional image which should be shown in the foreground.
+     * @returns {Reply} a screen with an optional image.
+     * @see https://developer.amazon.com/de/docs/custom-skills/display-interface-reference.html#bodytemplate7-for-scalable-foreground-image-with-optional-background-image
+     */
+    static displayPicture(title, token, background, backVisible, foreground = undefined) {
+        return {
+            platform: 'Alexa',
+            type: 'directory',
+            render: () => {
+                return {
+                    type: "BodyTemplate7",
+                    token: token,
+                    backButton: (backVisible ? "VISIBLE" : "HIDDEN"),
+                    backgroundImage: background,
+                    title: title,
+                    image: foreground,
+                };
+            },
+            debug: () => `Displaying a picture with caption ${title}`
         };
     }
     /**
@@ -328,6 +399,14 @@ var ImageAlignment;
     ImageAlignment[ImageAlignment["Right"] = 0] = "Right";
     ImageAlignment[ImageAlignment["Left"] = 1] = "Left";
 })(ImageAlignment = exports.ImageAlignment || (exports.ImageAlignment = {}));
+/**
+ * The image alignment within the screen.
+ */
+var TextAlignment;
+(function (TextAlignment) {
+    TextAlignment[TextAlignment["Top"] = 0] = "Top";
+    TextAlignment[TextAlignment["Bottom"] = 1] = "Bottom";
+})(TextAlignment = exports.TextAlignment || (exports.TextAlignment = {}));
 /**
  * The list alignment on the screen.
  */
