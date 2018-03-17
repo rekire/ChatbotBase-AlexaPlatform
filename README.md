@@ -8,11 +8,13 @@ The platform implementation for Alexa for [ChatbotBase][chatbotbase]
  - Signature check (since 0.5)
  - Simple response: Spreak out the given text
  - Cards for the Alexa App and FireTV
+ - Card for account linking (since 0.6)
  - EchoShow / EchoSpot screens (since 0.4):
    * Text only
    * Text with image
    * Image only
    * Listings (vertical and horizontal)
+ - SSML Support (fixed in 0.6)
   
 ## License
   [Apache 2.0](LICENSE)
