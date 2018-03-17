@@ -100,7 +100,7 @@ export class Alexa extends VoicePlatform {
             sessionAttributes: reply.context,
             response: {
                 outputSpeech: {
-                    type: "PlainText",
+                    type: formattedReply.indexOf('<') >= 0 ? 'SSML' : 'PlainText',
                     text: plainReply,
                     ssml: `<speak>${formattedReply}</speak>`
                 },

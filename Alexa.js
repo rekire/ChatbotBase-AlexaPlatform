@@ -95,7 +95,7 @@ class Alexa extends chatbotbase_1.VoicePlatform {
             sessionAttributes: reply.context,
             response: {
                 outputSpeech: {
-                    type: "PlainText",
+                    type: formattedReply.indexOf('<') >= 0 ? 'SSML' : 'PlainText',
                     text: plainReply,
                     ssml: `<speak>${formattedReply}</speak>`
                 },
