@@ -137,6 +137,22 @@ class Alexa extends chatbotbase_1.VoicePlatform {
         };
     }
     /**
+     * Create an account binding card in the Alexa app.
+     * @returns {Reply} a card for the Alexa App.
+     */
+    static linkAccount() {
+        return {
+            platform: 'Alexa',
+            type: 'card',
+            render: () => {
+                return {
+                    type: "LinkAccount"
+                };
+            },
+            debug: () => "Show account binding"
+        };
+    }
+    /**
      * Displays a simple screen with an image.
      * @param {string} title Title of the screen.
      * @param {string} token Used to track selectable elements in the skill service code. The value can be any user-defined string.
