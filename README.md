@@ -15,7 +15,14 @@ The platform implementation for Alexa for [ChatbotBase][chatbotbase]
    * Image only
    * Listings (vertical and horizontal)
  - SSML Support (fixed in 0.6)
-  
+
+## Planed Features
+ - Slot values (parameters)
+ - Permission handling
+ - Location requests
+ - Smart Home support (not before 1.0)
+ - Video support (not before 1.0)
+
 ## License
   [Apache 2.0](LICENSE)
 
