@@ -16,13 +16,13 @@ export class Alexa extends VoicePlatform {
             });
         }
         let platform, intent;
-        platform = "Unexpected Alexa Device";
+        platform = 'Unexpected Alexa Device';
         if(body.context.System.device.supportedInterfaces.Display) {
-            platform = "EchoShow";
+            platform = 'EchoShow';
         } else if(body.context.System.device.supportedInterfaces.AudioPlayer) {
-            platform = "Alexa";
+            platform = 'Alexa';
         } else if(body.context.System.device.supportedInterfaces.VideoApp) {
-            platform = "FireTV";
+            platform = 'FireTV';
         }
         if(body.request.type === 'IntentRequest') { // normal alexa intent
             intent = body.request.intent.name;
@@ -56,7 +56,7 @@ export class Alexa extends VoicePlatform {
     verify(request: VerifyDataHolder, response: any): Promise<boolean> | boolean {
         const verifier = require('alexa-verifier');
         return new Promise(function(resolve, reject) {
-            verifier(request.header("SignatureCertChainUrl"), request.header("Signature"), request.rawRequest(), function(er) {
+            verifier(request.header('SignatureCertChainUrl'), request.header('Signature'), request.rawRequest(), function(er) {
                 if(er)
                     reject(er);
                 else
@@ -89,7 +89,7 @@ export class Alexa extends VoicePlatform {
         });
         const reprompt = reply.retentionMessage && reply.expectAnswer ? {
             outputSpeech: {
-                type: "PlainText",
+                type: 'PlainText',
                 text: reply.retentionMessage,
                 ssml: `<speak>${reply.retentionMessage}</speak>`
             }
@@ -104,9 +104,9 @@ export class Alexa extends VoicePlatform {
                     text: plainReply,
                     ssml: `<speak>${formattedReply}</speak>`
                 },
-                card: card,
-                reprompt: reprompt,
-                directives: directives,
+                card,
+                reprompt,
+                directives,
                 shouldEndSession: !reply.expectAnswer
             }
         };
@@ -125,7 +125,7 @@ export class Alexa extends VoicePlatform {
      * @returns {Reply} a card for the Alexa App and FireTV (Stick).
      */
     static simpleCard(title: string, message: string, imageUrlSmall: string | undefined = undefined, imageUrlLarge: string | undefined = undefined): Reply {
-        return <Reply>{
+        return {
             platform: 'Alexa',
             type: 'card',
             render: () => {
@@ -134,13 +134,13 @@ export class Alexa extends VoicePlatform {
                     largeImageUrl: imageUrlLarge || imageUrlSmall
                 };
                 return {
-                    type: "Standard",
-                    title: title,
+                    type: 'Standard',
+                    title,
                     text: message,
-                    image: image
+                    image
                 }
             },
-            debug: () => title + ": " + message
+            debug: () => title + ': ' + message
         };
     }
 
@@ -149,15 +149,15 @@ export class Alexa extends VoicePlatform {
      * @returns {Reply} a card for the Alexa App.
      */
     static linkAccount(): Reply {
-        return <Reply>{
+        return {
             platform: 'Alexa',
             type: 'card',
             render: () => {
                 return {
-                    type: "LinkAccount"
+                    type: 'LinkAccount'
                 }
             },
-            debug: () => "Show account binding"
+            debug: () => 'Show account binding'
         };
     }
 
@@ -176,22 +176,22 @@ export class Alexa extends VoicePlatform {
      * @see https://developer.amazon.com/de/docs/custom-skills/display-interface-reference.html#bodytemplate3-for-image-views-and-limited-left-aligned-text
      */
     static displayTextAndPicture(title: string, token: string, background: EchoShowImage, backVisible: boolean, text: EchoShowTextContent | string, image: EchoShowImage | null = null, alignment: ImageAlignment = ImageAlignment.Right): Reply {
-        const textContent = typeof text === "string" ? new EchoShowTextContent(text) : text;
-        return <Reply>{
+        const textContent = typeof text === 'string' ? new EchoShowTextContent(text) : text;
+        return {
             platform: 'Alexa',
             type: 'directory',
             render: () => {
                 return {
-                    type: "BodyTemplate" + (image === null ? 1 : alignment === ImageAlignment.Right ? 2 : 3),
-                    token: token,
-                    backButton: (backVisible ? "VISIBLE" : "HIDDEN"),
+                    type: 'BodyTemplate' + (image === null ? 1 : alignment === ImageAlignment.Right ? 2 : 3),
+                    token,
+                    backButton: (backVisible ? 'VISIBLE' : 'HIDDEN'),
                     backgroundImage: background,
-                    title: title,
-                    image: image,
-                    textContent: textContent
+                    title,
+                    image,
+                    textContent
                 }
             },
-            debug: () => title + ": " + textContent.primaryText.text
+            debug: () => title + ': ' + textContent.primaryText.text
         }
     }
 
@@ -209,21 +209,21 @@ export class Alexa extends VoicePlatform {
      * @see https://developer.amazon.com/de/docs/custom-skills/display-interface-reference.html#bodytemplate3-for-image-views-and-limited-left-aligned-text
      */
     static displayText(title: string, token: string, background: EchoShowImage, backVisible: boolean, text: EchoShowTextContent | string, alignment: TextAlignment = TextAlignment.Top): Reply {
-        const textContent = typeof text === "string" ? new EchoShowTextContent(text) : text;
-        return <Reply>{
+        const textContent = typeof text === 'string' ? new EchoShowTextContent(text) : text;
+        return {
             platform: 'Alexa',
             type: 'directory',
             render: () => {
                 return {
-                    type: "BodyTemplate" + (alignment === TextAlignment.Bottom ? 6 : 1),
-                    token: token,
-                    backButton: (backVisible ? "VISIBLE" : "HIDDEN"),
+                    type: 'BodyTemplate' + (alignment === TextAlignment.Bottom ? 6 : 1),
+                    token,
+                    backButton: (backVisible ? 'VISIBLE' : 'HIDDEN'),
                     backgroundImage: background,
-                    title: title,
-                    textContent: textContent
+                    title,
+                    textContent
                 }
             },
-            debug: () => title + ": " + textContent.primaryText.text
+            debug: () => title + ': ' + textContent.primaryText.text
         }
     }
 
@@ -238,16 +238,16 @@ export class Alexa extends VoicePlatform {
      * @see https://developer.amazon.com/de/docs/custom-skills/display-interface-reference.html#bodytemplate7-for-scalable-foreground-image-with-optional-background-image
      */
     static displayPicture(title: string, token: string, background: EchoShowImage, backVisible: boolean, foreground: EchoShowImage | undefined = undefined): Reply {
-        return <Reply>{
+        return {
             platform: 'Alexa',
             type: 'directory',
             render: () => {
                 return {
-                    type: "BodyTemplate7",
-                    token: token,
-                    backButton: (backVisible ? "VISIBLE" : "HIDDEN"),
+                    type: 'BodyTemplate7',
+                    token,
+                    backButton: (backVisible ? 'VISIBLE' : 'HIDDEN'),
                     backgroundImage: background,
-                    title: title,
+                    title,
                     image: foreground,
                 }
             },
@@ -261,27 +261,27 @@ export class Alexa extends VoicePlatform {
      * @param {string} token Used to track selectable elements in the skill service code. The value can be any user-defined string.
      * @param {EchoShowImage} background Background image of the screen.
      * @param {boolean} backVisible Set to true to show the back button.
-     * @param {EchoShowListItem[]} items The list items which should been shown.
+     * @param {EchoShowListItem[]} listItems The list items which should been shown.
      * @param {ListAlignment} alignment The optional alignment of the listing by default horizontal
      * @returns {Reply} a screen with a listing.
      * @see https://developer.amazon.com/de/docs/custom-skills/display-interface-reference.html#listtemplate1-for-text-lists-and-optional-images
      * @see https://developer.amazon.com/de/docs/custom-skills/display-interface-reference.html#listtemplate2-for-list-images-and-optional-text
      */
-    static displayListing(title: string, token: string, background: EchoShowImage, backVisible: boolean, items: EchoShowListItem[], alignment: ListAlignment = ListAlignment.Horizontal): Reply {
-        return <Reply>{
+    static displayListing(title: string, token: string, background: EchoShowImage, backVisible: boolean, listItems: EchoShowListItem[], alignment: ListAlignment = ListAlignment.Horizontal): Reply {
+        return {
             platform: 'Alexa',
             type: 'directory',
             render: () => {
                 return {
-                    type: "ListTemplate" + (alignment === ListAlignment.Vertical ? 1 : 2),
-                    token: token,
-                    backButton: (backVisible ? "VISIBLE" : "HIDDEN"),
+                    type: 'ListTemplate' + (alignment === ListAlignment.Vertical ? 1 : 2),
+                    token,
+                    backButton: (backVisible ? 'VISIBLE' : 'HIDDEN'),
                     backgroundImage: background,
-                    title: title,
-                    listItems: items
+                    title,
+                    listItems
                 }
             },
-            debug: () => `Screen with title "${title}" and with ${items.length} items`
+            debug: () => `Screen with title "${title}" and with ${listItems.length} items`
         };
     }
 }
@@ -319,7 +319,7 @@ export class EchoShowListItem {
     constructor(token: string, image: EchoShowImage | undefined, text: EchoShowTextContent | string) {
         this.token = token;
         this.image = image;
-        this.textContent = typeof text === "string" ? new EchoShowTextContent(text) : text;
+        this.textContent = typeof text === 'string' ? new EchoShowTextContent(text) : text;
     }
 
     token: string;
@@ -396,9 +396,9 @@ export class EchoShowTextContent {
      * @param {EchoShowText | string} tertiaryText The optional tertiary text, can be a string or a EchoShowText.
      */
     constructor(primaryText: EchoShowText | string, secondaryText?: EchoShowText | string, tertiaryText?: EchoShowText | string) {
-        this.primaryText = typeof primaryText === "string" ? new EchoShowText(primaryText) : primaryText;
-        this.secondaryText = typeof secondaryText === "string" ? new EchoShowText(secondaryText) : secondaryText;
-        this.tertiaryText = typeof tertiaryText === "string" ? new EchoShowText(tertiaryText) : tertiaryText;
+        this.primaryText = typeof primaryText === 'string' ? new EchoShowText(primaryText) : primaryText;
+        this.secondaryText = typeof secondaryText === 'string' ? new EchoShowText(secondaryText) : secondaryText;
+        this.tertiaryText = typeof tertiaryText === 'string' ? new EchoShowText(tertiaryText) : tertiaryText;
     }
 
     primaryText: EchoShowText;
