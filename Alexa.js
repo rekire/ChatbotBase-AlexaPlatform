@@ -16,15 +16,15 @@ class Alexa extends chatbotbase_1.VoicePlatform {
             });
         }
         let platform, intent;
-        platform = "Unexpected Alexa Device";
+        platform = 'Unexpected Alexa Device';
         if (body.context.System.device.supportedInterfaces.Display) {
-            platform = "EchoShow";
+            platform = 'EchoShow';
         }
         else if (body.context.System.device.supportedInterfaces.AudioPlayer) {
-            platform = "Alexa";
+            platform = 'Alexa';
         }
         else if (body.context.System.device.supportedInterfaces.VideoApp) {
-            platform = "FireTV";
+            platform = 'FireTV';
         }
         if (body.request.type === 'IntentRequest') {
             intent = body.request.intent.name;
@@ -49,7 +49,7 @@ class Alexa extends chatbotbase_1.VoicePlatform {
     verify(request, response) {
         const verifier = require('alexa-verifier');
         return new Promise(function (resolve, reject) {
-            verifier(request.header("SignatureCertChainUrl"), request.header("Signature"), request.rawRequest(), function (er) {
+            verifier(request.header('SignatureCertChainUrl'), request.header('Signature'), request.rawRequest(), function (er) {
                 if (er)
                     reject(er);
                 else
@@ -81,10 +81,13 @@ class Alexa extends chatbotbase_1.VoicePlatform {
                     card = msg.render();
                 }
             }
+            else if (msg.type === 'permission') {
+                card = msg.render();
+            }
         });
         const reprompt = reply.retentionMessage && reply.expectAnswer ? {
             outputSpeech: {
-                type: "PlainText",
+                type: 'PlainText',
                 text: reply.retentionMessage,
                 ssml: `<speak>${reply.retentionMessage}</speak>`
             }
@@ -99,15 +102,66 @@ class Alexa extends chatbotbase_1.VoicePlatform {
                     text: plainReply,
                     ssml: `<speak>${formattedReply}</speak>`
                 },
-                card: card,
-                reprompt: reprompt,
-                directives: directives,
+                card,
+                reprompt,
+                directives,
                 shouldEndSession: !reply.expectAnswer
             }
         };
     }
     isSupported(json) {
         return json.hasOwnProperty('session'); // request, context
+    }
+    requestPermission(reason, permissions) {
+        let permissionList;
+        if (permissions instanceof Array) {
+            permissionList = permissions;
+        }
+        else {
+            permissionList = [permissions];
+        }
+        if (permissionList.length > 0)
+            return undefined;
+        const alexaPermissions = [];
+        permissionList.forEach(permission => {
+            switch (permission) {
+                case chatbotbase_1.VoicePermission.ExactPosition:
+                    alexaPermissions.push('read::alexa:device:all:address');
+                    break;
+                case chatbotbase_1.VoicePermission.RegionalPosition:
+                    alexaPermissions.push('read::alexa:device:all:address:country_and_postal_code');
+                    break;
+                // Will be add later in a later release, for now that are too many possible calls for a MVP. If you want to
+                // implement this yourself or if you want to add this features to this library check this documentation:
+                // https://developer.amazon.com/de/docs/custom-skills/access-the-alexa-shopping-and-to-do-lists.html#list-management-quick-reference
+                //case VoicePermission.readToDos:
+                //    alexaPermissions.push('read::alexa:household:list');
+                //    break;
+                //case VoicePermission.writeToDos:
+                //    alexaPermissions.push('write::alexa:household:list');
+                //    break;s
+                // This two cases are deprecated they will been removed in a later release
+                // @deprecated this will be replaced in a later release by VoicePermission.readToDos
+                case 'read::alexa:household:list':
+                // @deprecated this will be replaced in a later release by VoicePermission.writeToDos
+                case 'write::alexa:household:list':
+                    alexaPermissions.push(permission);
+                    break;
+                default:
+                    return undefined;
+            }
+        });
+        return {
+            platform: 'Alexa',
+            type: 'permission',
+            render: () => {
+                return {
+                    type: 'AskForPermissionsConsent',
+                    permissions: alexaPermissions
+                };
+            },
+            debug: () => 'Asking for permission: ' + alexaPermissions.join(', ')
+        };
     }
     /**
      * Create a reply containing a simple card optional with an image, this will be rendered on the Alexa App and the FireTV (Stick). This will just display the last card.
@@ -127,13 +181,13 @@ class Alexa extends chatbotbase_1.VoicePlatform {
                     largeImageUrl: imageUrlLarge || imageUrlSmall
                 };
                 return {
-                    type: "Standard",
-                    title: title,
+                    type: 'Standard',
+                    title,
                     text: message,
-                    image: image
+                    image
                 };
             },
-            debug: () => title + ": " + message
+            debug: () => title + ': ' + message
         };
     }
     /**
@@ -146,10 +200,10 @@ class Alexa extends chatbotbase_1.VoicePlatform {
             type: 'card',
             render: () => {
                 return {
-                    type: "LinkAccount"
+                    type: 'LinkAccount'
                 };
             },
-            debug: () => "Show account binding"
+            debug: () => 'Show account binding'
         };
     }
     /**
@@ -167,22 +221,22 @@ class Alexa extends chatbotbase_1.VoicePlatform {
      * @see https://developer.amazon.com/de/docs/custom-skills/display-interface-reference.html#bodytemplate3-for-image-views-and-limited-left-aligned-text
      */
     static displayTextAndPicture(title, token, background, backVisible, text, image = null, alignment = ImageAlignment.Right) {
-        const textContent = typeof text === "string" ? new EchoShowTextContent(text) : text;
+        const textContent = typeof text === 'string' ? new EchoShowTextContent(text) : text;
         return {
             platform: 'Alexa',
             type: 'directory',
             render: () => {
                 return {
-                    type: "BodyTemplate" + (image === null ? 1 : alignment === ImageAlignment.Right ? 2 : 3),
-                    token: token,
-                    backButton: (backVisible ? "VISIBLE" : "HIDDEN"),
+                    type: 'BodyTemplate' + (image === null ? 1 : alignment === ImageAlignment.Right ? 2 : 3),
+                    token,
+                    backButton: (backVisible ? 'VISIBLE' : 'HIDDEN'),
                     backgroundImage: background,
-                    title: title,
-                    image: image,
-                    textContent: textContent
+                    title,
+                    image,
+                    textContent
                 };
             },
-            debug: () => title + ": " + textContent.primaryText.text
+            debug: () => title + ': ' + textContent.primaryText.text
         };
     }
     /**
@@ -199,21 +253,21 @@ class Alexa extends chatbotbase_1.VoicePlatform {
      * @see https://developer.amazon.com/de/docs/custom-skills/display-interface-reference.html#bodytemplate3-for-image-views-and-limited-left-aligned-text
      */
     static displayText(title, token, background, backVisible, text, alignment = TextAlignment.Top) {
-        const textContent = typeof text === "string" ? new EchoShowTextContent(text) : text;
+        const textContent = typeof text === 'string' ? new EchoShowTextContent(text) : text;
         return {
             platform: 'Alexa',
             type: 'directory',
             render: () => {
                 return {
-                    type: "BodyTemplate" + (alignment === TextAlignment.Bottom ? 6 : 1),
-                    token: token,
-                    backButton: (backVisible ? "VISIBLE" : "HIDDEN"),
+                    type: 'BodyTemplate' + (alignment === TextAlignment.Bottom ? 6 : 1),
+                    token,
+                    backButton: (backVisible ? 'VISIBLE' : 'HIDDEN'),
                     backgroundImage: background,
-                    title: title,
-                    textContent: textContent
+                    title,
+                    textContent
                 };
             },
-            debug: () => title + ": " + textContent.primaryText.text
+            debug: () => title + ': ' + textContent.primaryText.text
         };
     }
     /**
@@ -232,11 +286,11 @@ class Alexa extends chatbotbase_1.VoicePlatform {
             type: 'directory',
             render: () => {
                 return {
-                    type: "BodyTemplate7",
-                    token: token,
-                    backButton: (backVisible ? "VISIBLE" : "HIDDEN"),
+                    type: 'BodyTemplate7',
+                    token,
+                    backButton: (backVisible ? 'VISIBLE' : 'HIDDEN'),
                     backgroundImage: background,
-                    title: title,
+                    title,
                     image: foreground,
                 };
             },
@@ -249,32 +303,32 @@ class Alexa extends chatbotbase_1.VoicePlatform {
      * @param {string} token Used to track selectable elements in the skill service code. The value can be any user-defined string.
      * @param {EchoShowImage} background Background image of the screen.
      * @param {boolean} backVisible Set to true to show the back button.
-     * @param {EchoShowListItem[]} items The list items which should been shown.
+     * @param {EchoShowListItem[]} listItems The list items which should been shown.
      * @param {ListAlignment} alignment The optional alignment of the listing by default horizontal
      * @returns {Reply} a screen with a listing.
      * @see https://developer.amazon.com/de/docs/custom-skills/display-interface-reference.html#listtemplate1-for-text-lists-and-optional-images
      * @see https://developer.amazon.com/de/docs/custom-skills/display-interface-reference.html#listtemplate2-for-list-images-and-optional-text
      */
-    static displayListing(title, token, background, backVisible, items, alignment = ListAlignment.Horizontal) {
+    static displayListing(title, token, background, backVisible, listItems, alignment = ListAlignment.Horizontal) {
         return {
             platform: 'Alexa',
             type: 'directory',
             render: () => {
                 return {
-                    type: "ListTemplate" + (alignment === ListAlignment.Vertical ? 1 : 2),
-                    token: token,
-                    backButton: (backVisible ? "VISIBLE" : "HIDDEN"),
+                    type: 'ListTemplate' + (alignment === ListAlignment.Vertical ? 1 : 2),
+                    token,
+                    backButton: (backVisible ? 'VISIBLE' : 'HIDDEN'),
                     backgroundImage: background,
-                    title: title,
-                    listItems: items
+                    title,
+                    listItems
                 };
             },
-            debug: () => `Screen with title "${title}" and with ${items.length} items`
+            debug: () => `Screen with title "${title}" and with ${listItems.length} items`
         };
     }
 }
 exports.Alexa = Alexa;
-// needs to been put in a empty object with the key "image"
+// needs to been put in a empty object with the key 'image'
 /**
  * References and describes the image. Multiple sources for the image can be provided.
  */
@@ -304,7 +358,7 @@ class EchoShowListItem {
     constructor(token, image, text) {
         this.token = token;
         this.image = image;
-        this.textContent = typeof text === "string" ? new EchoShowTextContent(text) : text;
+        this.textContent = typeof text === 'string' ? new EchoShowTextContent(text) : text;
     }
 }
 exports.EchoShowListItem = EchoShowListItem;
@@ -375,9 +429,9 @@ class EchoShowTextContent {
      * @param {EchoShowText | string} tertiaryText The optional tertiary text, can be a string or a EchoShowText.
      */
     constructor(primaryText, secondaryText, tertiaryText) {
-        this.primaryText = typeof primaryText === "string" ? new EchoShowText(primaryText) : primaryText;
-        this.secondaryText = typeof secondaryText === "string" ? new EchoShowText(secondaryText) : secondaryText;
-        this.tertiaryText = typeof tertiaryText === "string" ? new EchoShowText(tertiaryText) : tertiaryText;
+        this.primaryText = typeof primaryText === 'string' ? new EchoShowText(primaryText) : primaryText;
+        this.secondaryText = typeof secondaryText === 'string' ? new EchoShowText(secondaryText) : secondaryText;
+        this.tertiaryText = typeof tertiaryText === 'string' ? new EchoShowText(tertiaryText) : tertiaryText;
     }
 }
 exports.EchoShowTextContent = EchoShowTextContent;

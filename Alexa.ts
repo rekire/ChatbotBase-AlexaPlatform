@@ -1,4 +1,13 @@
-import {Input, InputMethod, Reply, VoicePlatform, Context, Output, VerifyDataHolder} from 'chatbotbase';
+import {
+    Input,
+    InputMethod,
+    Reply,
+    VoicePlatform,
+    Context,
+    Output,
+    VerifyDataHolder,
+    VoicePermission
+} from 'chatbotbase';
 
 /**
  * A platform implementation for Amazon Alexa.
@@ -85,6 +94,8 @@ export class Alexa extends VoicePlatform {
                 } else if(msg.type === 'card') {
                     card = msg.render();
                 }
+            } else if(msg.type === 'permission') {
+                card = msg.render();
             }
         });
         const reprompt = reply.retentionMessage && reply.expectAnswer ? {
@@ -114,6 +125,57 @@ export class Alexa extends VoicePlatform {
 
     isSupported(json: any) {
         return json.hasOwnProperty('session')// request, context
+    }
+
+    requestPermission(reason: string, permissions: VoicePermission | string | (VoicePermission | string)[]): Reply | undefined {
+        let permissionList;
+        if(permissions instanceof Array) {
+            permissionList = permissions;
+        } else {
+            permissionList = [permissions];
+        }
+        if(permissionList.length > 0) return undefined;
+        const alexaPermissions: String[] = [];
+        permissionList.forEach(permission => {
+            switch(permission) {
+            case VoicePermission.ExactPosition:
+                alexaPermissions.push('read::alexa:device:all:address');
+                break;
+            case VoicePermission.RegionalPosition:
+                alexaPermissions.push('read::alexa:device:all:address:country_and_postal_code');
+                break;
+                // Will be add later in a later release, for now that are too many possible calls for a MVP. If you want to
+                // implement this yourself or if you want to add this features to this library check this documentation:
+                // https://developer.amazon.com/de/docs/custom-skills/access-the-alexa-shopping-and-to-do-lists.html#list-management-quick-reference
+                //case VoicePermission.readToDos:
+                //    alexaPermissions.push('read::alexa:household:list');
+                //    break;
+                //case VoicePermission.writeToDos:
+                //    alexaPermissions.push('write::alexa:household:list');
+                //    break;s
+
+                // This two cases are deprecated they will been removed in a later release
+                // @deprecated this will be replaced in a later release by VoicePermission.readToDos
+            case 'read::alexa:household:list':
+                // @deprecated this will be replaced in a later release by VoicePermission.writeToDos
+            case 'write::alexa:household:list':
+                alexaPermissions.push(permission);
+                break;
+            default:
+                return undefined;
+            }
+        });
+        return {
+            platform: 'Alexa',
+            type: 'permission',
+            render: () => {
+                return {
+                    type: 'AskForPermissionsConsent',
+                    permissions: alexaPermissions
+                }
+            },
+            debug: () => 'Asking for permission: ' + alexaPermissions.join(', ')
+        };
     }
 
     /**
