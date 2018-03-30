@@ -328,7 +328,7 @@ class Alexa extends chatbotbase_1.VoicePlatform {
     }
 }
 exports.Alexa = Alexa;
-// needs to been put in a empty object with the key 'image'
+// needs to been put in a empty object with the key "image"
 /**
  * References and describes the image. Multiple sources for the image can be provided.
  */
