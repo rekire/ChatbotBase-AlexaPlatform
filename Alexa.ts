@@ -75,15 +75,15 @@ export class Alexa extends VoicePlatform {
     }
 
     render(reply: Output): any {
-        let plainReply, formattedReply;
+        let ssml, displayText;
         const directives: any = [];
         let card = undefined;
         reply.replies.forEach(msg => {
             if(msg.platform === '*') {
-                if(msg.type === 'plain') {
-                    plainReply = msg.render();
-                } else if(msg.type === 'formatted') {
-                    formattedReply = msg.render();
+                if(msg.type === 'ssml') {
+                    ssml = msg.render();
+                } else if(msg.type === 'text') {
+                    displayText = msg.render();
                 }
             } else if(msg.platform === 'Alexa') {
                 if(msg.type === 'directory' && reply.platform === 'EchoShow') {
@@ -105,15 +105,17 @@ export class Alexa extends VoicePlatform {
                 ssml: `<speak>${reply.retentionMessage}</speak>`
             }
         } : undefined;
-        formattedReply = formattedReply || plainReply;
+        // Generate proper default values
+        displayText = displayText || '';
+        ssml = ssml || displayText.replace(/<[^>]+>/g, '');
         return {
             version: '1.0',
             sessionAttributes: reply.context,
             response: {
                 outputSpeech: {
-                    type: formattedReply.indexOf('<') >= 0 ? 'SSML' : 'PlainText',
-                    text: plainReply,
-                    ssml: `<speak>${formattedReply}</speak>`
+                    type: ssml ? 'SSML' : 'PlainText',
+                    text: displayText,
+                    ssml: `<speak>${ssml}</speak>`
                 },
                 card,
                 reprompt,
