@@ -26,11 +26,11 @@ class Alexa extends chatbotbase_1.VoicePlatform {
         else if (body.context.System.device.supportedInterfaces.VideoApp) {
             platform = 'FireTV';
         }
-        if (body.request.type === 'IntentRequest') {
+        if (body.request.type === 'IntentRequest') { // normal alexa intent
             intent = body.request.intent.name;
         }
         else if (body.request.type === 'SessionEndedRequest') {
-            if (body.request.reason === 'ERROR') {
+            if (body.request.reason === 'ERROR') { // alexa error logging
                 //input = request.request.error.message;
             }
             else {
