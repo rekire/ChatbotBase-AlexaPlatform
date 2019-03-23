@@ -8,6 +8,7 @@ import {
     VerifyDataHolder,
     VoicePermission
 } from 'chatbotbase';
+import {verifier} from 'alexa-verifier';
 
 /**
  * A platform implementation for Amazon Alexa.
@@ -63,7 +64,6 @@ export class Alexa extends VoicePlatform {
     }
 
     verify(request: VerifyDataHolder, response: any): Promise<boolean> | boolean {
-        const verifier = require('alexa-verifier');
         return new Promise(function(resolve, reject) {
             verifier(request.header('SignatureCertChainUrl'), request.header('Signature'), request.rawRequest(), function(er) {
                 if(er)
@@ -75,7 +75,7 @@ export class Alexa extends VoicePlatform {
     }
 
     render(reply: Output): any {
-        let ssml, displayText;
+        let ssml = '', displayText = '';
         const directives: any = [];
         let card = undefined;
         reply.replies.forEach(msg => {
@@ -106,7 +106,6 @@ export class Alexa extends VoicePlatform {
             }
         } : undefined;
         // Generate proper default values
-        displayText = displayText || '';
         ssml = ssml || displayText.replace(/<[^>]+>/g, '');
         return {
             version: '1.0',

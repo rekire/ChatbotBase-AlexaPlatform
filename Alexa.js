@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const chatbotbase_1 = require("chatbotbase");
+const alexa_verifier_1 = require("alexa-verifier");
 /**
  * A platform implementation for Amazon Alexa.
  */
@@ -47,9 +48,8 @@ class Alexa extends chatbotbase_1.VoicePlatform {
         return new chatbotbase_1.Input(body.request.requestId, body.session.user.userId, body.session.sessionId, body.request.locale, platform, new Date(body.request.timestamp), intent, chatbotbase_1.InputMethod.voice, intent, data, body.session.user.accessToken);
     }
     verify(request, response) {
-        const verifier = require('alexa-verifier');
         return new Promise(function (resolve, reject) {
-            verifier(request.header('SignatureCertChainUrl'), request.header('Signature'), request.rawRequest(), function (er) {
+            alexa_verifier_1.verifier(request.header('SignatureCertChainUrl'), request.header('Signature'), request.rawRequest(), function (er) {
                 if (er)
                     reject(er);
                 else
@@ -58,7 +58,7 @@ class Alexa extends chatbotbase_1.VoicePlatform {
         });
     }
     render(reply) {
-        let ssml, displayText;
+        let ssml = '', displayText = '';
         const directives = [];
         let card = undefined;
         reply.replies.forEach(msg => {
@@ -93,7 +93,6 @@ class Alexa extends chatbotbase_1.VoicePlatform {
             }
         } : undefined;
         // Generate proper default values
-        displayText = displayText || '';
         ssml = ssml || displayText.replace(/<[^>]+>/g, '');
         return {
             version: '1.0',

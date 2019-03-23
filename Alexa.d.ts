@@ -153,7 +153,7 @@ export declare enum EchoShowImageSize {
      * Displayed within extra large containers.
      * Pixel dimensions: 1920 x 1280
      */
-    X_LARGE = "X_LARGE",
+    X_LARGE = "X_LARGE"
 }
 /**
  * Holds the strings you want to display on a screen.
@@ -189,26 +189,26 @@ export declare class EchoShowText {
  */
 export declare enum EchoShowTextType {
     PlainText = "PlainText",
-    RichText = "RichText",
+    RichText = "RichText"
 }
 /**
  * The image alignment within the screen.
  */
 export declare enum ImageAlignment {
     Right = 0,
-    Left = 1,
+    Left = 1
 }
 /**
  * The image alignment within the screen.
  */
 export declare enum TextAlignment {
     Top = 0,
-    Bottom = 1,
+    Bottom = 1
 }
 /**
  * The list alignment on the screen.
  */
 export declare enum ListAlignment {
     Horizontal = 0,
-    Vertical = 1,
+    Vertical = 1
 }

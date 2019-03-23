@@ -3,7 +3,7 @@
   "compilerOptions": {
     "moduleResolution": "node",
     "module": "commonjs",
-    "target": "es2015",
+    "target": "ES2018",
     "sourceMap": true,
     "experimentalDecorators": true,
     "noImplicitAny": false,
@@ -11,20 +11,15 @@
     "strictNullChecks": true,
     "declaration": true,
     "lib": [
-      "es2017.object",
-      "es2015",
-      "es2017",
+      "es2018",
+      "es2018.promise",
       "dom"
     ]
   },
   "exclude": [
-    "*/node_modules",
+    "node_modules",
     "dist/",
+    "tmp/",
     "test/"
-  ],
-  "paths": {
-    "*": [
-      "typings/*"
-    ]
-  }
+  ]
 }
