@@ -1,6 +1,6 @@
 {
   "name": "chatbotbase-alexaplatform",
-  "version": "0.7.1",
+  "version": "1.0.0",
   "description": "The platform implementation for Alexa for ChatbotBase",
   "main": "Alexa.js",
   "types": "Alexa.d.ts",
@@ -14,7 +14,9 @@
   },
   "keywords": [
     "chatbotbase",
-    "alexa"
+    "alexa",
+    "voice-app",
+    "voice-application"
   ],
   "author": "René Kilczan <npm@reki.re>",
   "license": "Apache-2.0",
@@ -24,9 +26,6 @@
   "homepage": "https://github.com/rekire/ChatbotBase-AlexaPlatform#readme",
   "dependencies": {
     "alexa-verifier": "^1.0.0",
-    "chatbotbase": "^0.6.4"
-  },
-  "devDependencies": {
-    "@types/node": "^8.10.1"
+    "chatbotbase": "^1.0.0"
   }
 }
