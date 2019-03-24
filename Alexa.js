@@ -111,7 +111,7 @@ class Alexa extends chatbotbase_1.VoicePlatform {
         };
     }
     isSupported(json) {
-        return json.hasOwnProperty('session'); // request, context
+        return json.hasOwnProperty('session') && json.hasOwnProperty('request') && json.hasOwnProperty('context');
     }
     requestPermission(reason, permissions) {
         let permissionList;

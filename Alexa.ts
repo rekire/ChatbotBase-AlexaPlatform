@@ -125,7 +125,7 @@ export class Alexa extends VoicePlatform {
     }
 
     isSupported(json: any) {
-        return json.hasOwnProperty('session')// request, context
+        return json.hasOwnProperty('session') && json.hasOwnProperty('request') && json.hasOwnProperty('context')
     }
 
     requestPermission(reason: string, permissions: VoicePermission | string | (VoicePermission | string)[]): Reply | undefined {
