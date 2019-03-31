@@ -127,225 +127,235 @@ export class Alexa extends VoicePlatform {
     isSupported(json: any) {
         return json.hasOwnProperty('session') && json.hasOwnProperty('request') && json.hasOwnProperty('context')
     }
+}
 
-    requestPermission(reason: string, permissions: VoicePermission | string | (VoicePermission | string)[]): Reply | undefined {
-        let permissionList;
-        if(permissions instanceof Array) {
-            permissionList = permissions;
-        } else {
-            permissionList = [permissions];
-        }
-        if(permissionList.length > 0) return undefined;
-        const alexaPermissions: String[] = [];
-        permissionList.forEach(permission => {
-            switch(permission) {
-            case VoicePermission.ExactPosition:
-                alexaPermissions.push('read::alexa:device:all:address');
-                break;
-            case VoicePermission.RegionalPosition:
-                alexaPermissions.push('read::alexa:device:all:address:country_and_postal_code');
-                break;
-                // Will be add later in a later release, for now that are too many possible calls for a MVP. If you want to
-                // implement this yourself or if you want to add this features to this library check this documentation:
-                // https://developer.amazon.com/de/docs/custom-skills/access-the-alexa-shopping-and-to-do-lists.html#list-management-quick-reference
-                //case VoicePermission.readToDos:
-                //    alexaPermissions.push('read::alexa:household:list');
-                //    break;
-                //case VoicePermission.writeToDos:
-                //    alexaPermissions.push('write::alexa:household:list');
-                //    break;s
+type ReplyBuilder<T = {}> = new (...args: any[]) => T;
 
-                // This two cases are deprecated they will been removed in a later release
-                // @deprecated this will be replaced in a later release by VoicePermission.readToDos
-            case 'read::alexa:household:list':
-                // @deprecated this will be replaced in a later release by VoicePermission.writeToDos
-            case 'write::alexa:household:list':
-                alexaPermissions.push(permission);
-                break;
-            default:
-                return undefined;
+export function AlexaReply<TBase extends ReplyBuilder>(Base: TBase) {
+    return class extends Base {
+        requestPermission(reason: string, permissions: VoicePermission | string | (VoicePermission | string)[]): Reply | undefined {
+            let permissionList;
+            if(permissions instanceof Array) {
+                permissionList = permissions;
+            } else {
+                permissionList = [permissions];
             }
-        });
-        return {
-            platform: 'Alexa',
-            type: 'permission',
-            render: () => {
-                return {
-                    type: 'AskForPermissionsConsent',
-                    permissions: alexaPermissions
-                }
-            },
-            debug: () => 'Asking for permission: ' + alexaPermissions.join(', ')
-        };
-    }
+            if(permissionList.length > 0) return undefined;
+            const alexaPermissions: String[] = [];
+            permissionList.forEach(permission => {
+                switch(permission) {
+                case VoicePermission.ExactPosition:
+                    alexaPermissions.push('read::alexa:device:all:address');
+                    break;
+                case VoicePermission.RegionalPosition:
+                    alexaPermissions.push('read::alexa:device:all:address:country_and_postal_code');
+                    break;
+                    // Will be add later in a later release, for now that are too many possible calls for a MVP. If you want to
+                    // implement this yourself or if you want to add this features to this library check this documentation:
+                    // https://developer.amazon.com/de/docs/custom-skills/access-the-alexa-shopping-and-to-do-lists.html#list-management-quick-reference
+                    //case VoicePermission.readToDos:
+                    //    alexaPermissions.push('read::alexa:household:list');
+                    //    break;
+                    //case VoicePermission.writeToDos:
+                    //    alexaPermissions.push('write::alexa:household:list');
+                    //    break;s
 
-    /**
-     * Create a reply containing a simple card optional with an image, this will be rendered on the Alexa App and the FireTV (Stick). This will just display the last card.
-     * @param {string} title The title of the card.
-     * @param {string} message The message of the card.
-     * @param {string | undefined} imageUrlSmall The small version of the image. It will be used also as large image if no imageUrlLarge is set.
-     * @param {string | undefined} imageUrlLarge The large version of the image.
-     * @returns {Reply} a card for the Alexa App and FireTV (Stick).
-     */
-    static simpleCard(title: string, message: string, imageUrlSmall: string | undefined = undefined, imageUrlLarge: string | undefined = undefined): Reply {
-        return {
-            platform: 'Alexa',
-            type: 'card',
-            render: () => {
-                const image = imageUrlSmall === undefined ? undefined : {
-                    smallImageUrl: imageUrlSmall,
-                    largeImageUrl: imageUrlLarge || imageUrlSmall
-                };
-                return {
-                    type: 'Standard',
-                    title,
-                    text: message,
-                    image
+                    // This two cases are deprecated they will been removed in a later release
+                    // @deprecated this will be replaced in a later release by VoicePermission.readToDos
+                case 'read::alexa:household:list':
+                    // @deprecated this will be replaced in a later release by VoicePermission.writeToDos
+                case 'write::alexa:household:list':
+                    alexaPermissions.push(permission);
+                    break;
+                default:
+                    return undefined;
                 }
-            },
-            debug: () => title + ': ' + message
-        };
-    }
-
-    /**
-     * Create an account binding card in the Alexa app.
-     * @returns {Reply} a card for the Alexa App.
-     */
-    static linkAccount(): Reply {
-        return {
-            platform: 'Alexa',
-            type: 'card',
-            render: () => {
-                return {
-                    type: 'LinkAccount'
-                }
-            },
-            debug: () => 'Show account binding'
-        };
-    }
-
-    /**
-     * Displays a simple screen with an image.
-     * @param {string} title Title of the screen.
-     * @param {string} token Used to track selectable elements in the skill service code. The value can be any user-defined string.
-     * @param {EchoShowImage} background Background image of the screen.
-     * @param {boolean} backVisible Set to true to show the back button.
-     * @param {EchoShowTextContent | string} text The text which should be displayed.
-     * @param {EchoShowImage} image The optional image which should be shown.
-     * @param {ImageAlignment} alignment The optional alignment of the image, by default right.
-     * @returns {Reply} a screen with an optional image.
-     * @see https://developer.amazon.com/de/docs/custom-skills/display-interface-reference.html#bodytemplate1-for-simple-text-and-image-views
-     * @see https://developer.amazon.com/de/docs/custom-skills/display-interface-reference.html#bodytemplate2-for-image-views-and-limited-centered-text
-     * @see https://developer.amazon.com/de/docs/custom-skills/display-interface-reference.html#bodytemplate3-for-image-views-and-limited-left-aligned-text
-     */
-    static displayTextAndPicture(title: string, token: string, background: EchoShowImage, backVisible: boolean, text: EchoShowTextContent | string, image: EchoShowImage | null = null, alignment: ImageAlignment = ImageAlignment.Right): Reply {
-        const textContent = typeof text === 'string' ? new EchoShowTextContent(text) : text;
-        return {
-            platform: 'Alexa',
-            type: 'directory',
-            render: () => {
-                return {
-                    type: 'BodyTemplate' + (image === null ? 1 : alignment === ImageAlignment.Right ? 2 : 3),
-                    token,
-                    backButton: (backVisible ? 'VISIBLE' : 'HIDDEN'),
-                    backgroundImage: background,
-                    title,
-                    image,
-                    textContent
-                }
-            },
-            debug: () => title + ': ' + textContent.primaryText.text
+            });
+            return {
+                platform: 'Alexa',
+                type: 'permission',
+                render: () => {
+                    return {
+                        type: 'AskForPermissionsConsent',
+                        permissions: alexaPermissions
+                    }
+                },
+                debug: () => 'Asking for permission: ' + alexaPermissions.join(', ')
+            };
         }
-    }
 
-    /**
-     * Displays a screen with a text on it.
-     * @param {string} title Title of the screen.
-     * @param {string} token Used to track selectable elements in the skill service code. The value can be any user-defined string.
-     * @param {EchoShowImage} background Background image of the screen.
-     * @param {boolean} backVisible Set to true to show the back button.
-     * @param {EchoShowTextContent | string} text The text which should be displayed.
-     * @param {TextAlignment} alignment The optional vertical alignment of the text, by default top.
-     * @returns {Reply} a screen with a text.
-     * @see https://developer.amazon.com/de/docs/custom-skills/display-interface-reference.html#bodytemplate1-for-simple-text-and-image-views
-     * @see https://developer.amazon.com/de/docs/custom-skills/display-interface-reference.html#bodytemplate2-for-image-views-and-limited-centered-text
-     * @see https://developer.amazon.com/de/docs/custom-skills/display-interface-reference.html#bodytemplate3-for-image-views-and-limited-left-aligned-text
-     */
-    static displayText(title: string, token: string, background: EchoShowImage, backVisible: boolean, text: EchoShowTextContent | string, alignment: TextAlignment = TextAlignment.Top): Reply {
-        const textContent = typeof text === 'string' ? new EchoShowTextContent(text) : text;
-        return {
-            platform: 'Alexa',
-            type: 'directory',
-            render: () => {
-                return {
-                    type: 'BodyTemplate' + (alignment === TextAlignment.Bottom ? 6 : 1),
-                    token,
-                    backButton: (backVisible ? 'VISIBLE' : 'HIDDEN'),
-                    backgroundImage: background,
-                    title,
-                    textContent
-                }
-            },
-            debug: () => title + ': ' + textContent.primaryText.text
+        requestLogin(): boolean {
+            return false // FIXME
         }
-    }
 
-    /**
-     * Displays a simple screen with an image.
-     * @param {string} title Title of the screen.
-     * @param {string} token Used to track selectable elements in the skill service code. The value can be any user-defined string.
-     * @param {EchoShowImage} background Background image of the screen.
-     * @param {boolean} backVisible Set to true to show the back button.
-     * @param {EchoShowImage} foreground The optional image which should be shown in the foreground.
-     * @returns {Reply} a screen with an optional image.
-     * @see https://developer.amazon.com/de/docs/custom-skills/display-interface-reference.html#bodytemplate7-for-scalable-foreground-image-with-optional-background-image
-     */
-    static displayPicture(title: string, token: string, background: EchoShowImage, backVisible: boolean, foreground: EchoShowImage | undefined = undefined): Reply {
-        return {
-            platform: 'Alexa',
-            type: 'directory',
-            render: () => {
-                return {
-                    type: 'BodyTemplate7',
-                    token,
-                    backButton: (backVisible ? 'VISIBLE' : 'HIDDEN'),
-                    backgroundImage: background,
-                    title,
-                    image: foreground,
-                }
-            },
-            debug: () => `Displaying a picture with caption ${title}`
+        /**
+         * Create a reply containing a simple card optional with an image, this will be rendered on the Alexa App and the FireTV (Stick). This will just display the last card.
+         * @param {string} title The title of the card.
+         * @param {string} message The message of the card.
+         * @param {string | undefined} imageUrlSmall The small version of the image. It will be used also as large image if no imageUrlLarge is set.
+         * @param {string | undefined} imageUrlLarge The large version of the image.
+         * @returns {Reply} a card for the Alexa App and FireTV (Stick).
+         */
+        simpleCard(title: string, message: string, imageUrlSmall: string | undefined = undefined, imageUrlLarge: string | undefined = undefined): Reply {
+            return {
+                platform: 'Alexa',
+                type: 'card',
+                render: () => {
+                    const image = imageUrlSmall === undefined ? undefined : {
+                        smallImageUrl: imageUrlSmall,
+                        largeImageUrl: imageUrlLarge || imageUrlSmall
+                    };
+                    return {
+                        type: 'Standard',
+                        title,
+                        text: message,
+                        image
+                    }
+                },
+                debug: () => title + ': ' + message
+            };
         }
-    }
 
-    /**
-     * Display a listing screen. You can choose between a horizontal (default) and vertical design.
-     * @param {string} title Title of the screen.
-     * @param {string} token Used to track selectable elements in the skill service code. The value can be any user-defined string.
-     * @param {EchoShowImage} background Background image of the screen.
-     * @param {boolean} backVisible Set to true to show the back button.
-     * @param {EchoShowListItem[]} listItems The list items which should been shown.
-     * @param {ListAlignment} alignment The optional alignment of the listing by default horizontal
-     * @returns {Reply} a screen with a listing.
-     * @see https://developer.amazon.com/de/docs/custom-skills/display-interface-reference.html#listtemplate1-for-text-lists-and-optional-images
-     * @see https://developer.amazon.com/de/docs/custom-skills/display-interface-reference.html#listtemplate2-for-list-images-and-optional-text
-     */
-    static displayListing(title: string, token: string, background: EchoShowImage, backVisible: boolean, listItems: EchoShowListItem[], alignment: ListAlignment = ListAlignment.Horizontal): Reply {
-        return {
-            platform: 'Alexa',
-            type: 'directory',
-            render: () => {
-                return {
-                    type: 'ListTemplate' + (alignment === ListAlignment.Vertical ? 1 : 2),
-                    token,
-                    backButton: (backVisible ? 'VISIBLE' : 'HIDDEN'),
-                    backgroundImage: background,
-                    title,
-                    listItems
-                }
-            },
-            debug: () => `Screen with title "${title}" and with ${listItems.length} items`
-        };
+        /**
+         * Create an account binding card in the Alexa app.
+         * @returns {Reply} a card for the Alexa App.
+         */
+        linkAccount(): Reply {
+            return {
+                platform: 'Alexa',
+                type: 'card',
+                render: () => {
+                    return {
+                        type: 'LinkAccount'
+                    }
+                },
+                debug: () => 'Show account binding'
+            };
+        }
+
+        /**
+         * Displays a simple screen with an image.
+         * @param {string} title Title of the screen.
+         * @param {string} token Used to track selectable elements in the skill service code. The value can be any user-defined string.
+         * @param {EchoShowImage} background Background image of the screen.
+         * @param {boolean} backVisible Set to true to show the back button.
+         * @param {EchoShowTextContent | string} text The text which should be displayed.
+         * @param {EchoShowImage} image The optional image which should be shown.
+         * @param {ImageAlignment} alignment The optional alignment of the image, by default right.
+         * @returns {Reply} a screen with an optional image.
+         * @see https://developer.amazon.com/de/docs/custom-skills/display-interface-reference.html#bodytemplate1-for-simple-text-and-image-views
+         * @see https://developer.amazon.com/de/docs/custom-skills/display-interface-reference.html#bodytemplate2-for-image-views-and-limited-centered-text
+         * @see https://developer.amazon.com/de/docs/custom-skills/display-interface-reference.html#bodytemplate3-for-image-views-and-limited-left-aligned-text
+         */
+        displayTextAndPicture(title: string, token: string, background: EchoShowImage, backVisible: boolean, text: EchoShowTextContent | string, image: EchoShowImage | null = null, alignment: ImageAlignment = ImageAlignment.Right): Reply {
+            const textContent = typeof text === 'string' ? new EchoShowTextContent(text) : text;
+            return {
+                platform: 'Alexa',
+                type: 'directory',
+                render: () => {
+                    return {
+                        type: 'BodyTemplate' + (image === null ? 1 : alignment === ImageAlignment.Right ? 2 : 3),
+                        token,
+                        backButton: (backVisible ? 'VISIBLE' : 'HIDDEN'),
+                        backgroundImage: background,
+                        title,
+                        image,
+                        textContent
+                    }
+                },
+                debug: () => title + ': ' + textContent.primaryText.text
+            }
+        }
+
+        /**
+         * Displays a screen with a text on it.
+         * @param {string} title Title of the screen.
+         * @param {string} token Used to track selectable elements in the skill service code. The value can be any user-defined string.
+         * @param {EchoShowImage} background Background image of the screen.
+         * @param {boolean} backVisible Set to true to show the back button.
+         * @param {EchoShowTextContent | string} text The text which should be displayed.
+         * @param {TextAlignment} alignment The optional vertical alignment of the text, by default top.
+         * @returns {Reply} a screen with a text.
+         * @see https://developer.amazon.com/de/docs/custom-skills/display-interface-reference.html#bodytemplate1-for-simple-text-and-image-views
+         * @see https://developer.amazon.com/de/docs/custom-skills/display-interface-reference.html#bodytemplate2-for-image-views-and-limited-centered-text
+         * @see https://developer.amazon.com/de/docs/custom-skills/display-interface-reference.html#bodytemplate3-for-image-views-and-limited-left-aligned-text
+         */
+        displayText(title: string, token: string, background: EchoShowImage, backVisible: boolean, text: EchoShowTextContent | string, alignment: TextAlignment = TextAlignment.Top): Reply {
+            const textContent = typeof text === 'string' ? new EchoShowTextContent(text) : text;
+            return {
+                platform: 'Alexa',
+                type: 'directory',
+                render: () => {
+                    return {
+                        type: 'BodyTemplate' + (alignment === TextAlignment.Bottom ? 6 : 1),
+                        token,
+                        backButton: (backVisible ? 'VISIBLE' : 'HIDDEN'),
+                        backgroundImage: background,
+                        title,
+                        textContent
+                    }
+                },
+                debug: () => title + ': ' + textContent.primaryText.text
+            }
+        }
+
+        /**
+         * Displays a simple screen with an image.
+         * @param {string} title Title of the screen.
+         * @param {string} token Used to track selectable elements in the skill service code. The value can be any user-defined string.
+         * @param {EchoShowImage} background Background image of the screen.
+         * @param {boolean} backVisible Set to true to show the back button.
+         * @param {EchoShowImage} foreground The optional image which should be shown in the foreground.
+         * @returns {Reply} a screen with an optional image.
+         * @see https://developer.amazon.com/de/docs/custom-skills/display-interface-reference.html#bodytemplate7-for-scalable-foreground-image-with-optional-background-image
+         */
+        displayPicture(title: string, token: string, background: EchoShowImage, backVisible: boolean, foreground: EchoShowImage | undefined = undefined): Reply {
+            return {
+                platform: 'Alexa',
+                type: 'directory',
+                render: () => {
+                    return {
+                        type: 'BodyTemplate7',
+                        token,
+                        backButton: (backVisible ? 'VISIBLE' : 'HIDDEN'),
+                        backgroundImage: background,
+                        title,
+                        image: foreground,
+                    }
+                },
+                debug: () => `Displaying a picture with caption ${title}`
+            }
+        }
+
+        /**
+         * Display a listing screen. You can choose between a horizontal (default) and vertical design.
+         * @param {string} title Title of the screen.
+         * @param {string} token Used to track selectable elements in the skill service code. The value can be any user-defined string.
+         * @param {EchoShowImage} background Background image of the screen.
+         * @param {boolean} backVisible Set to true to show the back button.
+         * @param {EchoShowListItem[]} listItems The list items which should been shown.
+         * @param {ListAlignment} alignment The optional alignment of the listing by default horizontal
+         * @returns {Reply} a screen with a listing.
+         * @see https://developer.amazon.com/de/docs/custom-skills/display-interface-reference.html#listtemplate1-for-text-lists-and-optional-images
+         * @see https://developer.amazon.com/de/docs/custom-skills/display-interface-reference.html#listtemplate2-for-list-images-and-optional-text
+         */
+        displayListing(title: string, token: string, background: EchoShowImage, backVisible: boolean, listItems: EchoShowListItem[], alignment: ListAlignment = ListAlignment.Horizontal): Reply {
+            return {
+                platform: 'Alexa',
+                type: 'directory',
+                render: () => {
+                    return {
+                        type: 'ListTemplate' + (alignment === ListAlignment.Vertical ? 1 : 2),
+                        token,
+                        backButton: (backVisible ? 'VISIBLE' : 'HIDDEN'),
+                        backgroundImage: background,
+                        title,
+                        listItems
+                    }
+                },
+                debug: () => `Screen with title "${title}" and with ${listItems.length} items`
+            };
+        }
     }
 }
 
