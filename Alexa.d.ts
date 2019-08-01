@@ -1,4 +1,4 @@
-import { Input, VoicePlatform, Output, VerifyDataHolder } from 'chatbotbase';
+import { Input, Reply, VoicePlatform, Output, VerifyDataHolder, VoicePermission } from 'chatbotbase';
 /**
  * A platform implementation for Amazon Alexa.
  */
@@ -12,7 +12,7 @@ export declare class Alexa extends VoicePlatform {
 declare type ReplyBuilder<T = {}> = new (...args: any[]) => T;
 export declare function AlexaReply<TBase extends ReplyBuilder>(Base: TBase): {
     new (...args: any[]): {
-        requestPermission(reason: string, permissions: any): any;
+        requestPermission(reason: string, permissions: string | VoicePermission | (string | VoicePermission)[]): Reply | undefined;
         requestLogin(): boolean;
         /**
          * Create a reply containing a simple card optional with an image, this will be rendered on the Alexa App and the FireTV (Stick). This will just display the last card.
@@ -22,12 +22,12 @@ export declare function AlexaReply<TBase extends ReplyBuilder>(Base: TBase): {
          * @param {string | undefined} imageUrlLarge The large version of the image.
          * @returns {Reply} a card for the Alexa App and FireTV (Stick).
          */
-        simpleCard(title: string, message: string, imageUrlSmall?: string | undefined, imageUrlLarge?: string | undefined): any;
+        simpleCard(title: string, message: string, imageUrlSmall?: string | undefined, imageUrlLarge?: string | undefined): Reply;
         /**
          * Create an account binding card in the Alexa app.
          * @returns {Reply} a card for the Alexa App.
          */
-        linkAccount(): any;
+        linkAccount(): Reply;
         /**
          * Displays a simple screen with an image.
          * @param {string} title Title of the screen.
@@ -42,7 +42,7 @@ export declare function AlexaReply<TBase extends ReplyBuilder>(Base: TBase): {
          * @see https://developer.amazon.com/de/docs/custom-skills/display-interface-reference.html#bodytemplate2-for-image-views-and-limited-centered-text
          * @see https://developer.amazon.com/de/docs/custom-skills/display-interface-reference.html#bodytemplate3-for-image-views-and-limited-left-aligned-text
          */
-        displayTextAndPicture(title: string, token: string, background: EchoShowImage, backVisible: boolean, text: string | EchoShowTextContent, image?: EchoShowImage | null, alignment?: ImageAlignment): any;
+        displayTextAndPicture(title: string, token: string, background: EchoShowImage, backVisible: boolean, text: string | EchoShowTextContent, image?: EchoShowImage | null, alignment?: ImageAlignment): Reply;
         /**
          * Displays a screen with a text on it.
          * @param {string} title Title of the screen.
@@ -56,7 +56,7 @@ export declare function AlexaReply<TBase extends ReplyBuilder>(Base: TBase): {
          * @see https://developer.amazon.com/de/docs/custom-skills/display-interface-reference.html#bodytemplate2-for-image-views-and-limited-centered-text
          * @see https://developer.amazon.com/de/docs/custom-skills/display-interface-reference.html#bodytemplate3-for-image-views-and-limited-left-aligned-text
          */
-        displayText(title: string, token: string, background: EchoShowImage, backVisible: boolean, text: string | EchoShowTextContent, alignment?: TextAlignment): any;
+        displayText(title: string, token: string, background: EchoShowImage, backVisible: boolean, text: string | EchoShowTextContent, alignment?: TextAlignment): Reply;
         /**
          * Displays a simple screen with an image.
          * @param {string} title Title of the screen.
@@ -67,7 +67,7 @@ export declare function AlexaReply<TBase extends ReplyBuilder>(Base: TBase): {
          * @returns {Reply} a screen with an optional image.
          * @see https://developer.amazon.com/de/docs/custom-skills/display-interface-reference.html#bodytemplate7-for-scalable-foreground-image-with-optional-background-image
          */
-        displayPicture(title: string, token: string, background: EchoShowImage, backVisible: boolean, foreground?: EchoShowImage | undefined): any;
+        displayPicture(title: string, token: string, background: EchoShowImage, backVisible: boolean, foreground?: EchoShowImage | undefined): Reply;
         /**
          * Display a listing screen. You can choose between a horizontal (default) and vertical design.
          * @param {string} title Title of the screen.
@@ -80,7 +80,7 @@ export declare function AlexaReply<TBase extends ReplyBuilder>(Base: TBase): {
          * @see https://developer.amazon.com/de/docs/custom-skills/display-interface-reference.html#listtemplate1-for-text-lists-and-optional-images
          * @see https://developer.amazon.com/de/docs/custom-skills/display-interface-reference.html#listtemplate2-for-list-images-and-optional-text
          */
-        displayListing(title: string, token: string, background: EchoShowImage, backVisible: boolean, listItems: EchoShowListItem[], alignment?: ListAlignment): any;
+        displayListing(title: string, token: string, background: EchoShowImage, backVisible: boolean, listItems: EchoShowListItem[], alignment?: ListAlignment): Reply;
     };
 } & TBase;
 /**
