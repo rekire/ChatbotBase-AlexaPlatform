@@ -6,7 +6,8 @@ import {
     Context,
     Output,
     VerifyDataHolder,
-    VoicePermission
+    VoicePermission,
+    DefaultReply
 } from 'chatbotbase';
 import {verifier} from 'alexa-verifier';
 
@@ -133,7 +134,7 @@ type ReplyBuilder<T = {}> = new (...args: any[]) => T;
 
 export function AlexaReply<TBase extends ReplyBuilder>(Base: TBase) {
     return class extends Base {
-        requestPermission(reason: string, permissions: VoicePermission | string | (VoicePermission | string)[]): Reply | undefined {
+        requestAlexaPermission(reason: string, permissions: VoicePermission | string | (VoicePermission | string)[]) {
             let permissionList;
             if(permissions instanceof Array) {
                 permissionList = permissions;
@@ -168,10 +169,10 @@ export function AlexaReply<TBase extends ReplyBuilder>(Base: TBase) {
                     alexaPermissions.push(permission);
                     break;
                 default:
-                    return undefined;
+                    return;
                 }
             });
-            return {
+            (<DefaultReply><any>this).addReply(<Reply>{
                 platform: 'Alexa',
                 type: 'permission',
                 render: () => {
@@ -181,11 +182,20 @@ export function AlexaReply<TBase extends ReplyBuilder>(Base: TBase) {
                     }
                 },
                 debug: () => 'Asking for permission: ' + alexaPermissions.join(', ')
-            };
+            });
         }
 
-        requestLogin(): boolean {
-            return false // FIXME
+        requestAlexaLogin() {
+            (<DefaultReply><any>this).addReply({
+                platform: 'Alexa',
+                type: 'card',
+                render: () => {
+                    return {
+                        type: 'LinkAccount'
+                    }
+                },
+                debug: () => 'Show account binding'
+            });
         }
 
         /**
@@ -194,10 +204,9 @@ export function AlexaReply<TBase extends ReplyBuilder>(Base: TBase) {
          * @param {string} message The message of the card.
          * @param {string | undefined} imageUrlSmall The small version of the image. It will be used also as large image if no imageUrlLarge is set.
          * @param {string | undefined} imageUrlLarge The large version of the image.
-         * @returns {Reply} a card for the Alexa App and FireTV (Stick).
          */
-        simpleCard(title: string, message: string, imageUrlSmall: string | undefined = undefined, imageUrlLarge: string | undefined = undefined): Reply {
-            return {
+        addAlexaSimpleCard(title: string, message: string, imageUrlSmall: string | undefined = undefined, imageUrlLarge: string | undefined = undefined) {
+            (<DefaultReply><any>this).addReply({
                 platform: 'Alexa',
                 type: 'card',
                 render: () => {
@@ -213,24 +222,7 @@ export function AlexaReply<TBase extends ReplyBuilder>(Base: TBase) {
                     }
                 },
                 debug: () => title + ': ' + message
-            };
-        }
-
-        /**
-         * Create an account binding card in the Alexa app.
-         * @returns {Reply} a card for the Alexa App.
-         */
-        linkAccount(): Reply {
-            return {
-                platform: 'Alexa',
-                type: 'card',
-                render: () => {
-                    return {
-                        type: 'LinkAccount'
-                    }
-                },
-                debug: () => 'Show account binding'
-            };
+            });
         }
 
         /**
@@ -242,14 +234,13 @@ export function AlexaReply<TBase extends ReplyBuilder>(Base: TBase) {
          * @param {EchoShowTextContent | string} text The text which should be displayed.
          * @param {EchoShowImage} image The optional image which should be shown.
          * @param {ImageAlignment} alignment The optional alignment of the image, by default right.
-         * @returns {Reply} a screen with an optional image.
          * @see https://developer.amazon.com/de/docs/custom-skills/display-interface-reference.html#bodytemplate1-for-simple-text-and-image-views
          * @see https://developer.amazon.com/de/docs/custom-skills/display-interface-reference.html#bodytemplate2-for-image-views-and-limited-centered-text
          * @see https://developer.amazon.com/de/docs/custom-skills/display-interface-reference.html#bodytemplate3-for-image-views-and-limited-left-aligned-text
          */
-        displayTextAndPicture(title: string, token: string, background: EchoShowImage, backVisible: boolean, text: EchoShowTextContent | string, image: EchoShowImage | null = null, alignment: ImageAlignment = ImageAlignment.Right): Reply {
+        showAlexaTextAndPicture(title: string, token: string, background: EchoShowImage, backVisible: boolean, text: EchoShowTextContent | string, image: EchoShowImage | null = null, alignment: ImageAlignment = ImageAlignment.Right) {
             const textContent = typeof text === 'string' ? new EchoShowTextContent(text) : text;
-            return {
+            (<DefaultReply><any>this).addReply({
                 platform: 'Alexa',
                 type: 'directory',
                 render: () => {
@@ -264,7 +255,7 @@ export function AlexaReply<TBase extends ReplyBuilder>(Base: TBase) {
                     }
                 },
                 debug: () => title + ': ' + textContent.primaryText.text
-            }
+            });
         }
 
         /**
@@ -275,14 +266,13 @@ export function AlexaReply<TBase extends ReplyBuilder>(Base: TBase) {
          * @param {boolean} backVisible Set to true to show the back button.
          * @param {EchoShowTextContent | string} text The text which should be displayed.
          * @param {TextAlignment} alignment The optional vertical alignment of the text, by default top.
-         * @returns {Reply} a screen with a text.
          * @see https://developer.amazon.com/de/docs/custom-skills/display-interface-reference.html#bodytemplate1-for-simple-text-and-image-views
          * @see https://developer.amazon.com/de/docs/custom-skills/display-interface-reference.html#bodytemplate2-for-image-views-and-limited-centered-text
          * @see https://developer.amazon.com/de/docs/custom-skills/display-interface-reference.html#bodytemplate3-for-image-views-and-limited-left-aligned-text
          */
-        displayText(title: string, token: string, background: EchoShowImage, backVisible: boolean, text: EchoShowTextContent | string, alignment: TextAlignment = TextAlignment.Top): Reply {
+        showAlexaText(title: string, token: string, background: EchoShowImage, backVisible: boolean, text: EchoShowTextContent | string, alignment: TextAlignment = TextAlignment.Top) {
             const textContent = typeof text === 'string' ? new EchoShowTextContent(text) : text;
-            return {
+            (<DefaultReply><any>this).addReply({
                 platform: 'Alexa',
                 type: 'directory',
                 render: () => {
@@ -296,7 +286,7 @@ export function AlexaReply<TBase extends ReplyBuilder>(Base: TBase) {
                     }
                 },
                 debug: () => title + ': ' + textContent.primaryText.text
-            }
+            });
         }
 
         /**
@@ -309,8 +299,8 @@ export function AlexaReply<TBase extends ReplyBuilder>(Base: TBase) {
          * @returns {Reply} a screen with an optional image.
          * @see https://developer.amazon.com/de/docs/custom-skills/display-interface-reference.html#bodytemplate7-for-scalable-foreground-image-with-optional-background-image
          */
-        displayPicture(title: string, token: string, background: EchoShowImage, backVisible: boolean, foreground: EchoShowImage | undefined = undefined): Reply {
-            return {
+        showAlexaPicture(title: string, token: string, background: EchoShowImage, backVisible: boolean, foreground: EchoShowImage | undefined = undefined) {
+            (<DefaultReply><any>this).addReply({
                 platform: 'Alexa',
                 type: 'directory',
                 render: () => {
@@ -324,7 +314,7 @@ export function AlexaReply<TBase extends ReplyBuilder>(Base: TBase) {
                     }
                 },
                 debug: () => `Displaying a picture with caption ${title}`
-            }
+            });
         }
 
         /**
@@ -339,8 +329,8 @@ export function AlexaReply<TBase extends ReplyBuilder>(Base: TBase) {
          * @see https://developer.amazon.com/de/docs/custom-skills/display-interface-reference.html#listtemplate1-for-text-lists-and-optional-images
          * @see https://developer.amazon.com/de/docs/custom-skills/display-interface-reference.html#listtemplate2-for-list-images-and-optional-text
          */
-        displayListing(title: string, token: string, background: EchoShowImage, backVisible: boolean, listItems: EchoShowListItem[], alignment: ListAlignment = ListAlignment.Horizontal): Reply {
-            return {
+        showAlexaListing(title: string, token: string, background: EchoShowImage, backVisible: boolean, listItems: EchoShowListItem[], alignment: ListAlignment = ListAlignment.Horizontal) {
+            (<DefaultReply><any>this).addReply({
                 platform: 'Alexa',
                 type: 'directory',
                 render: () => {
@@ -354,7 +344,7 @@ export function AlexaReply<TBase extends ReplyBuilder>(Base: TBase) {
                     }
                 },
                 debug: () => `Screen with title "${title}" and with ${listItems.length} items`
-            };
+            });
         }
     }
 }

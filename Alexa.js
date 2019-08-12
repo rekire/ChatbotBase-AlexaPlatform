@@ -117,7 +117,7 @@ class Alexa extends chatbotbase_1.VoicePlatform {
 exports.Alexa = Alexa;
 function AlexaReply(Base) {
     return class extends Base {
-        requestPermission(reason, permissions) {
+        requestAlexaPermission(reason, permissions) {
             let permissionList;
             if (permissions instanceof Array) {
                 permissionList = permissions;
@@ -153,10 +153,10 @@ function AlexaReply(Base) {
                         alexaPermissions.push(permission);
                         break;
                     default:
-                        return undefined;
+                        return;
                 }
             });
-            return {
+            this.addReply({
                 platform: 'Alexa',
                 type: 'permission',
                 render: () => {
@@ -166,10 +166,19 @@ function AlexaReply(Base) {
                     };
                 },
                 debug: () => 'Asking for permission: ' + alexaPermissions.join(', ')
-            };
+            });
         }
-        requestLogin() {
-            return false; // FIXME
+        requestAlexaLogin() {
+            this.addReply({
+                platform: 'Alexa',
+                type: 'card',
+                render: () => {
+                    return {
+                        type: 'LinkAccount'
+                    };
+                },
+                debug: () => 'Show account binding'
+            });
         }
         /**
          * Create a reply containing a simple card optional with an image, this will be rendered on the Alexa App and the FireTV (Stick). This will just display the last card.
@@ -177,10 +186,9 @@ function AlexaReply(Base) {
          * @param {string} message The message of the card.
          * @param {string | undefined} imageUrlSmall The small version of the image. It will be used also as large image if no imageUrlLarge is set.
          * @param {string | undefined} imageUrlLarge The large version of the image.
-         * @returns {Reply} a card for the Alexa App and FireTV (Stick).
          */
-        simpleCard(title, message, imageUrlSmall = undefined, imageUrlLarge = undefined) {
-            return {
+        addAlexaSimpleCard(title, message, imageUrlSmall = undefined, imageUrlLarge = undefined) {
+            this.addReply({
                 platform: 'Alexa',
                 type: 'card',
                 render: () => {
@@ -196,23 +204,7 @@ function AlexaReply(Base) {
                     };
                 },
                 debug: () => title + ': ' + message
-            };
-        }
-        /**
-         * Create an account binding card in the Alexa app.
-         * @returns {Reply} a card for the Alexa App.
-         */
-        linkAccount() {
-            return {
-                platform: 'Alexa',
-                type: 'card',
-                render: () => {
-                    return {
-                        type: 'LinkAccount'
-                    };
-                },
-                debug: () => 'Show account binding'
-            };
+            });
         }
         /**
          * Displays a simple screen with an image.
@@ -223,14 +215,13 @@ function AlexaReply(Base) {
          * @param {EchoShowTextContent | string} text The text which should be displayed.
          * @param {EchoShowImage} image The optional image which should be shown.
          * @param {ImageAlignment} alignment The optional alignment of the image, by default right.
-         * @returns {Reply} a screen with an optional image.
          * @see https://developer.amazon.com/de/docs/custom-skills/display-interface-reference.html#bodytemplate1-for-simple-text-and-image-views
          * @see https://developer.amazon.com/de/docs/custom-skills/display-interface-reference.html#bodytemplate2-for-image-views-and-limited-centered-text
          * @see https://developer.amazon.com/de/docs/custom-skills/display-interface-reference.html#bodytemplate3-for-image-views-and-limited-left-aligned-text
          */
-        displayTextAndPicture(title, token, background, backVisible, text, image = null, alignment = ImageAlignment.Right) {
+        showAlexaTextAndPicture(title, token, background, backVisible, text, image = null, alignment = ImageAlignment.Right) {
             const textContent = typeof text === 'string' ? new EchoShowTextContent(text) : text;
-            return {
+            this.addReply({
                 platform: 'Alexa',
                 type: 'directory',
                 render: () => {
@@ -245,7 +236,7 @@ function AlexaReply(Base) {
                     };
                 },
                 debug: () => title + ': ' + textContent.primaryText.text
-            };
+            });
         }
         /**
          * Displays a screen with a text on it.
@@ -255,14 +246,13 @@ function AlexaReply(Base) {
          * @param {boolean} backVisible Set to true to show the back button.
          * @param {EchoShowTextContent | string} text The text which should be displayed.
          * @param {TextAlignment} alignment The optional vertical alignment of the text, by default top.
-         * @returns {Reply} a screen with a text.
          * @see https://developer.amazon.com/de/docs/custom-skills/display-interface-reference.html#bodytemplate1-for-simple-text-and-image-views
          * @see https://developer.amazon.com/de/docs/custom-skills/display-interface-reference.html#bodytemplate2-for-image-views-and-limited-centered-text
          * @see https://developer.amazon.com/de/docs/custom-skills/display-interface-reference.html#bodytemplate3-for-image-views-and-limited-left-aligned-text
          */
-        displayText(title, token, background, backVisible, text, alignment = TextAlignment.Top) {
+        showAlexaText(title, token, background, backVisible, text, alignment = TextAlignment.Top) {
             const textContent = typeof text === 'string' ? new EchoShowTextContent(text) : text;
-            return {
+            this.addReply({
                 platform: 'Alexa',
                 type: 'directory',
                 render: () => {
@@ -276,7 +266,7 @@ function AlexaReply(Base) {
                     };
                 },
                 debug: () => title + ': ' + textContent.primaryText.text
-            };
+            });
         }
         /**
          * Displays a simple screen with an image.
@@ -288,8 +278,8 @@ function AlexaReply(Base) {
          * @returns {Reply} a screen with an optional image.
          * @see https://developer.amazon.com/de/docs/custom-skills/display-interface-reference.html#bodytemplate7-for-scalable-foreground-image-with-optional-background-image
          */
-        displayPicture(title, token, background, backVisible, foreground = undefined) {
-            return {
+        showAlexaPicture(title, token, background, backVisible, foreground = undefined) {
+            this.addReply({
                 platform: 'Alexa',
                 type: 'directory',
                 render: () => {
@@ -303,7 +293,7 @@ function AlexaReply(Base) {
                     };
                 },
                 debug: () => `Displaying a picture with caption ${title}`
-            };
+            });
         }
         /**
          * Display a listing screen. You can choose between a horizontal (default) and vertical design.
@@ -317,8 +307,8 @@ function AlexaReply(Base) {
          * @see https://developer.amazon.com/de/docs/custom-skills/display-interface-reference.html#listtemplate1-for-text-lists-and-optional-images
          * @see https://developer.amazon.com/de/docs/custom-skills/display-interface-reference.html#listtemplate2-for-list-images-and-optional-text
          */
-        displayListing(title, token, background, backVisible, listItems, alignment = ListAlignment.Horizontal) {
-            return {
+        showAlexaListing(title, token, background, backVisible, listItems, alignment = ListAlignment.Horizontal) {
+            this.addReply({
                 platform: 'Alexa',
                 type: 'directory',
                 render: () => {
@@ -332,7 +322,7 @@ function AlexaReply(Base) {
                     };
                 },
                 debug: () => `Screen with title "${title}" and with ${listItems.length} items`
-            };
+            });
         }
     };
 }

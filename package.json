@@ -1,6 +1,6 @@
 {
   "name": "chatbotbase-alexaplatform",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "The platform implementation for Alexa for ChatbotBase",
   "main": "Alexa.js",
   "types": "Alexa.d.ts",
