@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const chatbotbase_1 = require("chatbotbase");
-const alexa_verifier_1 = require("alexa-verifier");
+const verifier = require("alexa-verifier");
 /**
  * A platform implementation for Amazon Alexa.
  */
@@ -45,11 +45,11 @@ class Alexa extends chatbotbase_1.VoicePlatform {
                 intent = body.request.intent.name;
             }
         }
-        return new chatbotbase_1.Input(body.request.requestId, body.session.user.userId, body.session.sessionId, body.request.locale, platform, new Date(body.request.timestamp), intent, chatbotbase_1.InputMethod.voice, intent, data, body.session.user.accessToken);
+        return new chatbotbase_1.Input(body.request.requestId, body.session.user.userId, body.session.sessionId, body.request.locale.substr(0, 2), platform, new Date(body.request.timestamp), intent, chatbotbase_1.InputMethod.voice, intent, data, body.session.user.accessToken);
     }
     verify(request, response) {
         return new Promise(function (resolve, reject) {
-            alexa_verifier_1.verifier(request.header('SignatureCertChainUrl'), request.header('Signature'), request.rawRequest(), function (er) {
+            verifier(request.header('SignatureCertChainUrl'), request.header('Signature'), request.rawRequest(), function (er) {
                 if (er)
                     reject(er);
                 else

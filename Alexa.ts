@@ -9,7 +9,7 @@ import {
     VoicePermission,
     DefaultReply
 } from 'chatbotbase';
-import {verifier} from 'alexa-verifier';
+import * as verifier from 'alexa-verifier';
 
 /**
  * A platform implementation for Amazon Alexa.
@@ -54,7 +54,7 @@ export class Alexa extends VoicePlatform {
             body.request.requestId,
             body.session.user.userId,
             body.session.sessionId,
-            body.request.locale,
+            body.request.locale.substr(0,2),
             platform,
             new Date(body.request.timestamp),
             intent,
