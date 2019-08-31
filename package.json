@@ -26,6 +26,6 @@
   "homepage": "https://github.com/rekire/ChatbotBase-AlexaPlatform#readme",
   "dependencies": {
     "alexa-verifier": "^1.0.0",
-    "chatbotbase": "^1.0.0"
+    "chatbotbase": "^1.0.3"
   }
 }
